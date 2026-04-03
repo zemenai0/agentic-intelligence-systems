@@ -10,3 +10,4 @@ Documentation scaffold for the project.
    installation
    api/index
    examples/index
+   agentic_concierge_specification
