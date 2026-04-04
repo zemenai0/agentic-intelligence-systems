@@ -73,7 +73,9 @@ The service can run with the deterministic fallback provider or with Gemini.
   otherwise `deterministic`
 - `GEMINI_MODEL`: defaults to `gemini-flash-latest`
 - `GEMINI_BASE_URL`: defaults to `https://generativelanguage.googleapis.com`
-- `BACKEND_BASE_URL`: backend API base URL from the Postman collection
+- `BACKEND_BASE_URL`: backend API base URL from the Postman collection.
+  This is required in deployed environments and must not point at
+  `localhost`.
 - `BACKEND_AUTH_MODE`: `none`, `api_key`, or `bearer`
 - `BACKEND_SERVICE_TOKEN`: backend bearer token when service-to-service auth is enabled
 
