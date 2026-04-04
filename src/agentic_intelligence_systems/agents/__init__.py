@@ -1,1 +1,1 @@
-"""Agents package scaffold."""
+"""Specialized agent modules."""

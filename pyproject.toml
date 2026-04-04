@@ -5,14 +5,20 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agentic-intelligence-systems"
 version = "0.1.0"
-description = "Repository scaffold for agentic AI systems."
+description = "Private HabitaLife agent service for hospitality orchestration."
 readme = "README.md"
 requires-python = ">=3.12.3"
 license = { text = "MIT" }
 authors = [
   { name = "Agentic Intelligence Systems contributors" }
 ]
-dependencies = []
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "httpx>=0.27,<1.0",
+  "pydantic>=2.7,<3.0",
+  "python-dotenv>=1.0,<2.0",
+  "uvicorn>=0.30,<1.0",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -28,11 +34,16 @@ dev = [
 test = [
   "pytest>=8.0,<9.0",
   "pytest-cov>=5.0,<6.0",
+  "pytest-asyncio>=0.23,<1.0",
 ]
 docs = [
   "sphinx>=7.3,<8.0",
   "furo>=2024.1.29",
 ]
+
+[project.scripts]
+habitalife-chat = "agentic_intelligence_systems.cli.chat:main"
+habitalife-admin = "agentic_intelligence_systems.cli.admin:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }

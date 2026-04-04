@@ -1,1 +1,1 @@
-"""Memory package scaffold."""
+"""Memory summarization helpers."""
