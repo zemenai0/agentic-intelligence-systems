@@ -1,9 +1,9 @@
 Backend And Frontend Integration Plan
-====================================
+=====================================
 
 Purpose
 -------
-This document defines how to integrate the current HabitaLife agent service
+This document defines how to integrate the current agent service
 with the backend and how to expose it cleanly through the frontend.
 
 This plan is based on the current live agent implementation in this

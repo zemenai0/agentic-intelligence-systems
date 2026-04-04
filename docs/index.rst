@@ -14,3 +14,4 @@ Documentation scaffold for the project.
    contract_design_plan
    agent_side_implementation_plan
    backend_frontend_integration_plan
+   recommendation_recovery_evolution_plan
