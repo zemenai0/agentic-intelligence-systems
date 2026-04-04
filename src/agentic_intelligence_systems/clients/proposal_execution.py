@@ -87,15 +87,10 @@ async def execute_proposal(
                             "You can add it after the booking is confirmed."
                         )
             elif service_name:
-                if booking_status == "pending":
-                    service_message = (
-                        f"{service_name} has been booked with your room. "
-                    )
-                else:
-                    service_message = (
-                        f"{service_name} has not been booked yet. "
-                        "I saved it in the reservation request, and it can be added once the booking is confirmed or checked in."
-                    )
+                service_message = (
+                    f"{service_name} has not been booked yet. "
+                    "I saved it in the reservation request, and it can be added once the booking is confirmed or checked in."
+                )
         return ProposalExecutionResult(
             tool_name=proposal.tool_name,
             raw_result=raw_result,

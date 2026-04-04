@@ -182,6 +182,9 @@ def should_auto_execute_confirmation(raw: str, proposals) -> bool:
     return any(
         phrase in normalized
         for phrase in {
+            "book now",
+            "please book now",
+            "book it now",
             "book this room",
             "book the room",
             "please book the room",
@@ -214,45 +217,51 @@ async def execute_and_render_proposal(
         state.room_id = execution.booking.room.id if execution.booking.room else state.room_id
         state.resort_id = execution.booking.resort_id or state.resort_id
         state.booking_status = execution.booking.status or state.booking_status
-        booking_status = (execution.booking.status or "").lower()
-        if booking_status in {"confirmed", "checked_in"}:
-            print(
-                "agent> "
-                f"Booking confirmed. Your booking ID is {execution.booking.booking_id}."
-            )
-        elif execution.booking.status:
-            print(
-                "agent> "
-                f"Booking created. Your booking ID is {execution.booking.booking_id}. "
-                f"Current status: {execution.booking.status}."
-            )
-        else:
-            print(
-                "agent> "
-                f"Booking created. Your booking ID is {execution.booking.booking_id}."
-            )
-        if execution.booking.total_price_cents is not None:
-            total_text = format_price_cents(execution.booking.total_price_cents, "USD")
-            print(
-                "agent> "
-                f"Reservation total_price_cents is {execution.booking.total_price_cents}"
-                f" ({total_text})."
-            )
-        if execution.service_name:
-            if execution.service_booking_total_cents is not None:
-                service_total_text = format_price_cents(
-                    execution.service_booking_total_cents,
-                    "USD",
-                )
-                print(
-                    "agent> "
-                    f"Added {execution.service_name} as a service booking with "
-                    f"total_price_cents={execution.service_booking_total_cents}"
-                    f" ({service_total_text})."
-                )
-            elif execution.service_message:
-                print(f"agent> {execution.service_message}")
-            else:
-                print(f"agent> Added {execution.service_name} to the booking services.")
+        print(f"agent> {_build_booking_success_message(execution)}")
+        service_line = _build_service_summary_message(execution)
+        if service_line:
+            print(f"agent> {service_line}")
         return
     print(f"agent> Executed {execution.tool_name} successfully.")
+
+
+def _build_booking_success_message(execution) -> str:
+    booking = execution.booking
+    room_label = "your room"
+    if booking and booking.room:
+        room_bits = [
+            bit
+            for bit in (
+                f"room {booking.room.room_number}" if booking.room.room_number else None,
+                booking.room.room_type.lower() if booking.room.room_type else None,
+            )
+            if bit
+        ]
+        if room_bits:
+            room_label = " - ".join(room_bits)
+
+    total_text = None
+    if booking and booking.total_price_cents is not None:
+        total_text = format_price_cents(booking.total_price_cents, "USD")
+
+    if total_text:
+        return (
+            f"You have booked {room_label} for {total_text}. "
+            f"Your booking ID is {booking.booking_id}."
+        )
+    return f"You have booked {room_label}. Your booking ID is {booking.booking_id}."
+
+
+def _build_service_summary_message(execution) -> str | None:
+    if not execution.service_name:
+        return None
+    if execution.service_booking_total_cents is not None:
+        service_total_text = format_price_cents(
+            execution.service_booking_total_cents,
+            "USD",
+        )
+        return (
+            f"Additional service booked: {execution.service_name} "
+            f"for {service_total_text}."
+        )
+    return f"Additional requested service: {execution.service_name}."

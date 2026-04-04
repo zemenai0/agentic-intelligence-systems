@@ -4,9 +4,17 @@ from __future__ import annotations
 
 import asyncio
 
-from agentic_intelligence_systems.cli.chat import should_auto_execute_confirmation
-from agentic_intelligence_systems.clients.proposal_execution import execute_proposal
+from agentic_intelligence_systems.cli.chat import (
+    _build_booking_success_message,
+    _build_service_summary_message,
+    should_auto_execute_confirmation,
+)
+from agentic_intelligence_systems.clients.proposal_execution import (
+    ProposalExecutionResult,
+    execute_proposal,
+)
 from agentic_intelligence_systems.contracts.common import Proposal, RiskLevel
+from agentic_intelligence_systems.contracts.tools import BookingRecord, RoomSummary
 
 
 def test_auto_executes_only_explicit_room_confirmation():
@@ -18,7 +26,58 @@ def test_auto_executes_only_explicit_room_confirmation():
         idempotency_key="abc",
     )
     assert should_auto_execute_confirmation("please book the room", [proposal]) is True
+    assert should_auto_execute_confirmation("book now", [proposal]) is True
     assert should_auto_execute_confirmation("I want to book a room next month", [proposal]) is False
+
+
+def test_booking_success_message_is_guest_facing():
+    execution = ProposalExecutionResult(
+        tool_name="create_booking",
+        raw_result={},
+        booking=BookingRecord(
+            booking_id="booking_123",
+            resort_id="resort_1",
+            status="pending",
+            room=RoomSummary(
+                id="room_104",
+                room_number="104",
+                room_type="Suite",
+                status="available",
+            ),
+            check_in_date="2026-09-03",
+            check_out_date="2026-09-05",
+            adults=2,
+            children=0,
+            total_price_cents=120000,
+        ),
+        service_name="Deep Tissue Massage",
+    )
+
+    assert (
+        _build_booking_success_message(execution)
+        == "You have booked room 104 - suite for USD 1200.00. Your booking ID is booking_123."
+    )
+    assert _build_service_summary_message(execution) == (
+        "Additional requested service: Deep Tissue Massage."
+    )
+
+
+def test_service_summary_uses_booked_wording_when_service_booking_exists():
+    execution = ProposalExecutionResult(
+        tool_name="create_booking",
+        raw_result={},
+        booking=BookingRecord(
+            booking_id="booking_123",
+            resort_id="resort_1",
+            total_price_cents=120000,
+        ),
+        service_name="Deep Tissue Massage",
+        service_booking_total_cents=3500,
+    )
+
+    assert _build_service_summary_message(execution) == (
+        "Additional service booked: Deep Tissue Massage for USD 35.00."
+    )
 
 
 def test_execute_booking_proposal_maps_to_backend_route():
