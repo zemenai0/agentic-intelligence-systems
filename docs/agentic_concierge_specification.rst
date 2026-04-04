@@ -12,8 +12,8 @@ The specification is grounded in two existing source documents:
 * The HabitaLife PRD, which defines the problem statement, target users, and
   MVP value proposition.
 * The initial system design document, which establishes the modular monolith,
-  FastAPI, PostgreSQL, JWT/RBAC, room lifecycle, reservation flows, and guest
-  service workflows.
+  FastAPI, PostgreSQL, session-based auth and RBAC, room lifecycle,
+  booking flows, and guest service workflows.
 
 This specification intentionally goes beyond the current MVP. It describes both
 the baseline system we can build now and the future-ready extensions that make
@@ -108,9 +108,9 @@ The entire platform follows these principles:
    expensive IoT automation wherever possible.
 4. ``Low-latency empathy, high-integrity state``
    Fast, warm guest interaction must never compromise booking, room, payment, or
-   access-control correctness.
+   check-in correctness.
 5. ``One shared operational truth``
-   Room state, reservation state, service request state, and escalation state
+   Room state, booking state, service request state, and escalation state
    must be unified across guest, staff, and management views.
 6. ``Human override is a first-class feature``
    Staff and managers must be able to take over, correct, reprioritize, or lock
@@ -153,7 +153,8 @@ responsibilities and interfaces.
      - READ tools, WRITE tools, INTERNAL tools, EXTERNAL connectors
      - MVP baseline
    * - Core domain services
-     - Own booking, room, access, service request, notification, and auth logic
+     - Own booking, room, check-in, service request, notification, and auth
+       logic
      - FastAPI modules in a modular monolith
      - MVP baseline
    * - Data and memory layer
@@ -161,10 +162,9 @@ responsibilities and interfaces.
      - PostgreSQL, optional pgvector, audit log tables, analytics events
      - PostgreSQL is MVP baseline; vector memory is future-ready extension
    * - External integrations
-     - Connect HabitaLife to payments, access control, messaging, partner
-       inventory, and analytics
-     - Payment gateway, push/email provider, PIN/access service, translation,
-       partner connectors
+     - Connect HabitaLife to payments, messaging, partner inventory, and
+       analytics
+     - Payment gateway, push/email provider, translation, partner connectors
      - Mixed baseline and future-ready extensions
 
 Reference Deployment Model
@@ -175,10 +175,9 @@ coordinated while preserving clear module boundaries.
 
 Recommended logical modules are:
 
-* ``guest_auth`` for registration, login, JWT issuance, session handling, and
-  RBAC.
-* ``booking`` for availability, quote generation, reservations, cancellations,
-  and access-code timing.
+* ``guest_auth`` for registration, login, session handling, and RBAC.
+* ``booking`` for availability, quote generation, bookings, cancellations,
+  and stay lifecycle timing.
 * ``room_management`` for room metadata, room state, housekeeping transitions,
   and maintenance locks.
 * ``guest_services`` for in-stay service requests, work queues, and completion
@@ -213,10 +212,9 @@ expanded carefully for agentic behavior.
      - MVP baseline
      - Model room features and service differentiators used in search and
        recommendation
-   * - ``Reservation``
+   * - ``Booking``
      - MVP baseline
-     - Links guest to room and stay dates, access-code validity, and booking
-       status
+     - Links guest to room and stay dates, pricing, and booking status
    * - ``ServiceRequest``
      - MVP baseline
      - Tracks guest requests from pending through resolution
@@ -248,20 +246,20 @@ Room states
 
 * ``AVAILABLE``: Ready to be booked and occupied.
 * ``BOOKED``: Reserved for a future stay but not yet occupied.
-* ``OCCUPIED``: Guest has checked in and access is active.
+* ``OCCUPIED``: Guest has checked in and the stay is active.
 * ``NEEDS_CLEANING``: Previous stay ended; room must be serviced before reuse.
 * ``MAINTENANCE_LOCK``: Room cannot be assigned because of an active issue or
   manual block.
 
-Reservation states
+Booking states
 ^^^^^^^^^^^^^^^^^^
 
 * ``PENDING_CONFIRMATION``: Quote exists but booking is not finalized.
-* ``CONFIRMED``: Reservation created successfully.
-* ``CHECKED_IN``: Guest has arrived and accessed the room.
+* ``CONFIRMED``: Booking created successfully.
+* ``CHECKED_IN``: Guest has arrived and the stay is active.
 * ``CHECKED_OUT``: Stay has ended and room turnover can begin.
-* ``CANCELLED``: Reservation was canceled.
-* ``NO_SHOW``: Reservation window passed without successful check-in.
+* ``CANCELLED``: Booking was canceled.
+* ``NO_SHOW``: Booking window passed without successful check-in.
 
 Service request states
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -313,7 +311,7 @@ multi-step actions.
      - Allowed outputs
    * - Interaction Agent
      - Maintain tone, dialogue continuity, and guest-facing clarity
-     - User message, active reservation context, memory summary, planner result
+     - User message, active booking context, memory summary, planner result
      - Response drafts, clarification prompts, sentiment cues
    * - Planner Orchestrator
      - Decide which agents and tools should be used for a request
@@ -329,8 +327,8 @@ multi-step actions.
      - Dates, guest count, room preferences, booking policies
      - Room options, quotes, booking proposals
    * - Guest Reception and Check-In Agent
-     - Manage pre-arrival readiness, access-code explanation, and check-in flow
-     - Reservation context, arrival time, access status
+     - Manage pre-arrival readiness, arrival guidance, and check-in flow
+     - Booking context, arrival time, room readiness
      - Check-in proposals, arrival instructions, failure escalation
    * - Service Request Agent
      - Convert stay-time needs into structured service requests
@@ -424,20 +422,20 @@ Responsibilities:
 
 Must not:
 
-* Create or modify reservations without confirmation.
+* Create or modify bookings without confirmation.
 * Promise upgrades or discounts outside policy.
 
 Guest Reception And Check-In Agent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Responsibilities:
 
-* Guide the guest from confirmed reservation to successful arrival.
-* Present access instructions, arrival steps, and identity requirements.
-* Detect arrival friction and escalate quickly when a guest is locked out.
+* Guide the guest from confirmed booking to successful arrival.
+* Present arrival instructions, front-desk steps, and identity requirements.
+* Detect arrival friction and escalate quickly when check-in is blocked.
 
 Must not:
 
-* Extend access beyond authorized windows.
+* Override booking-window or room-readiness rules.
 * Mark a guest checked in without validated evidence.
 
 Service Request Agent
@@ -551,7 +549,7 @@ Canonical Intent Envelope
    {
      "message_id": "msg_01",
      "guest_id": "guest_123",
-     "reservation_id": "res_456",
+     "booking_id": "booking_456",
      "channel": "mobile_chat",
      "language": "en",
      "raw_text": "Can I get two extra towels and a quiet dinner spot tonight?",
@@ -573,7 +571,7 @@ Canonical Intent Envelope
        "level": "P3_STANDARD",
        "reason": "no failure or deadline breach detected"
      },
-     "reservation_context": {
+     "booking_context": {
        "stay_status": "CHECKED_IN",
        "room_id": "room_204",
        "party_type": "family"
@@ -592,7 +590,7 @@ Canonical Agent-To-Tool Contract
      "tool_type": "WRITE",
      "permission": "guest_confirm_required",
      "arguments": {
-       "reservation_id": "res_456",
+       "booking_id": "booking_456",
        "request_type": "extra_towels",
        "quantity": 2
      },
@@ -617,7 +615,7 @@ Canonical Proposal And Confirmation Envelope
      "expires_at": "2026-04-03T12:45:00Z",
      "impacted_entities": {
        "guest_id": "guest_123",
-       "reservation_id": "res_456",
+       "booking_id": "booking_456",
        "room_id": "room_204"
      },
      "confirmation_ui": {
@@ -732,17 +730,17 @@ Guest Profile And Memory Reads
 
 ``get_current_stay_context`` [MVP baseline]
   Purpose:
-    Returns the active reservation, room, arrival/departure timeline, and open
+    Returns the active booking, room, arrival/departure timeline, and open
     service requests for the current stay.
   Caller agents:
     Interaction Agent, Planner Orchestrator, Service Request Agent, Sentiment
     and Recovery Agent.
   Required context:
-    ``guest_id`` or ``reservation_id``.
+    ``guest_id`` or ``booking_id``.
   Key parameters:
     ``include_open_requests``, ``include_room_status``.
   Response shape:
-    Reservation context object with stay status, room number, open tasks, and
+    Booking context object with stay status, room number, open tasks, and
     service history for the active stay.
   Permission:
     READ, auto-execute.
@@ -754,7 +752,7 @@ Guest Profile And Memory Reads
     If no active stay exists, return ``stay_status = none`` and allow the
     interaction agent to pivot to booking or general information mode.
   Audit:
-    Log actor role and reservation scope.
+    Log actor role and booking scope.
 
 ``get_guest_preference_signals`` [Future-ready extension]
   Purpose:
@@ -788,7 +786,7 @@ Guest Profile And Memory Reads
   Caller agents:
     Sentiment and Recovery Agent, Service Request Agent, Planner Orchestrator.
   Required context:
-    ``guest_id`` or ``reservation_id``.
+    ``guest_id`` or ``booking_id``.
   Key parameters:
     ``limit``, ``only_unresolved``.
   Response shape:
@@ -853,18 +851,18 @@ Booking And Availability Reads
   Audit:
     Log quote identifier and expiry.
 
-``get_reservation_record`` [MVP baseline]
+``get_booking_record`` [MVP baseline]
   Purpose:
-    Returns full reservation details including status, room, dates, and access
-    eligibility.
+    Returns full booking details including status, room, dates, and arrival
+    context.
   Caller agents:
     Booking Agent, Guest Reception and Check-In Agent, Interaction Agent.
   Required context:
-    ``reservation_id``.
+    ``booking_id``.
   Key parameters:
-    ``include_access_window``.
+    ``include_room_status``.
   Response shape:
-    Reservation object.
+    Booking object.
   Permission:
     READ, auto-execute.
   Confirmation:
@@ -874,20 +872,21 @@ Booking And Availability Reads
   Fallback:
     Return ``not_found`` with a user-safe explanation path.
   Audit:
-    Log reservation lookup outcome.
+    Log booking lookup outcome.
 
-``get_access_code_status`` [MVP baseline]
+``get_check_in_readiness`` [MVP baseline]
   Purpose:
-    Returns whether a reservation has a valid access code, its activation window,
-    and any failure reason.
+    Returns whether a booking is eligible for check-in based on booking
+    status, stay dates, and room readiness.
   Caller agents:
     Guest Reception and Check-In Agent, Interaction Agent.
   Required context:
-    ``reservation_id``.
+    ``booking_id``.
   Key parameters:
     None.
   Response shape:
-    Access status object with active, inactive, expired, or blocked status.
+    Readiness object with ``eligible``, ``deferred``, or ``blocked`` status and
+    a human-readable reason.
   Permission:
     READ, auto-execute.
   Confirmation:
@@ -895,9 +894,9 @@ Booking And Availability Reads
   Idempotency:
     Read-only.
   Fallback:
-    Route to manual check-in support if access state is uncertain.
+    Route to manual front desk support if readiness cannot be determined.
   Audit:
-    Log lookup and result state.
+    Log lookup and readiness result.
 
 Room State Reads
 ^^^^^^^^^^^^^^^^
@@ -1122,9 +1121,9 @@ Knowledge, Policy, And Recommendation Reads
   Caller agents:
     Booking Agent, Sentiment and Recovery Agent, Policy and Permission Guard.
   Required context:
-    Policy domain and reservation context.
+    Policy domain and booking context.
   Key parameters:
-    ``policy_domain``, ``reservation_status``.
+    ``policy_domain``, ``booking_status``.
   Response shape:
     Policy rule set with eligibility and approval level.
   Permission:
@@ -1200,7 +1199,7 @@ Service Request Writes
   Caller agents:
     Service Request Agent, Planner Orchestrator.
   Required context:
-    Active ``reservation_id`` and validated request type.
+    Active ``booking_id`` and validated request type.
   Key parameters:
     ``request_type``, ``quantity``, ``notes``, ``requested_for_time``.
   Response shape:
@@ -1266,12 +1265,12 @@ Service Request Writes
   Audit:
     Log priority delta and reason class.
 
-Booking And Reservation Writes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Booking Writes
+^^^^^^^^^^^^^^
 
-``create_reservation`` [MVP baseline]
+``create_booking`` [MVP baseline]
   Purpose:
-    Creates a new reservation after quote acceptance.
+    Creates a new booking after quote acceptance.
   Caller agents:
     Booking Agent.
   Required context:
@@ -1280,50 +1279,50 @@ Booking And Reservation Writes
     ``room_id``, ``check_in_date``, ``check_out_date``, ``guest_count``,
     ``pricing_token``.
   Response shape:
-    Reservation identifier, status, and access generation eligibility.
+    Booking identifier, status, and stay summary.
   Permission:
     WRITE, guest confirmation required.
   Confirmation:
     Guest confirms booking in UI; payment confirmation may be required before
     execution.
   Idempotency:
-    Same quote token and idempotency key return the existing reservation.
+    Same quote token and idempotency key return the existing booking.
   Fallback:
     Refresh inventory and quote if room availability changed.
   Audit:
     Log booking scope, quote token, and confirmation source.
 
-``modify_reservation`` [Future-ready extension]
+``modify_booking`` [Future-ready extension]
   Purpose:
     Changes dates, room assignment, or guest count within policy.
   Caller agents:
     Booking Agent, Guest Reception and Check-In Agent.
   Required context:
-    Existing ``reservation_id`` and policy eligibility.
+    Existing ``booking_id`` and policy eligibility.
   Key parameters:
     ``new_check_in_date``, ``new_check_out_date``, ``new_room_id``,
     ``guest_count``.
   Response shape:
-    Updated reservation plus any new pricing delta.
+    Updated booking plus any new pricing delta.
   Permission:
     WRITE, guest confirmation required; admin confirmation for restricted
     exceptions.
   Confirmation:
     Guest confirms the change; staff/admin may confirm exception cases.
   Idempotency:
-    Same target change key returns the existing modified reservation.
+    Same target change key returns the existing modified booking.
   Fallback:
     Offer alternative rooms or dates instead of partial silent failure.
   Audit:
     Log original state, target state, and approval path.
 
-``cancel_reservation`` [MVP baseline]
+``cancel_booking`` [MVP baseline]
   Purpose:
-    Cancels a reservation within policy.
+    Cancels a booking within policy.
   Caller agents:
     Booking Agent.
   Required context:
-    ``reservation_id`` and cancellation policy.
+    ``booking_id`` and cancellation policy.
   Key parameters:
     ``reason``, ``requested_by``.
   Response shape:
@@ -1333,56 +1332,32 @@ Booking And Reservation Writes
   Confirmation:
     Guest or authorized staff confirms cancellation.
   Idempotency:
-    Repeated cancellation on an already canceled reservation returns current
+    Repeated cancellation on an already canceled booking returns current
     state.
   Fallback:
     If cancellation is not allowed automatically, route to staff approval.
   Audit:
     Log policy outcome and actor.
 
-Check-In And Access Writes
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``issue_access_code`` [MVP baseline]
-  Purpose:
-    Generates or synchronizes a time-bound access code for a confirmed
-    reservation.
-  Caller agents:
-    Guest Reception and Check-In Agent.
-  Required context:
-    Confirmed reservation and eligible access window.
-  Key parameters:
-    ``reservation_id``, ``activation_time``, ``expiry_time``.
-  Response shape:
-    Access code metadata and delivery state.
-  Permission:
-    WRITE, staff confirmation or eligible automated post-booking confirmation.
-  Confirmation:
-    Staff can confirm manually; system can auto-stage after successful booking if
-    policy allows.
-  Idempotency:
-    Existing active code is returned unless rotation is explicitly requested.
-  Fallback:
-    Route to manual front desk issuance if connector is unavailable.
-  Audit:
-    Log reservation scope and code issuance result, never raw code value.
+Check-In And Checkout Writes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``validate_guest_check_in`` [MVP baseline]
   Purpose:
-    Marks a reservation as checked in after successful arrival validation.
+    Marks a booking as checked in after successful arrival validation.
   Caller agents:
     Guest Reception and Check-In Agent.
   Required context:
-    Reservation, valid access event or front desk verification.
+    Booking, current stay window, and front desk or staff verification.
   Key parameters:
-    ``reservation_id``, ``verification_source``.
+    ``booking_id``, ``verification_source``.
   Response shape:
-    Updated reservation and room occupancy status.
+    Updated booking and room occupancy status.
   Permission:
-    WRITE, staff confirmation or validated access event required.
+    WRITE, staff confirmation or validated arrival workflow required.
   Confirmation:
-    Staff confirms if the trigger is manual; access subsystem can serve as the
-    confirmation source when trusted.
+    Staff confirms if the trigger is manual; approved arrival workflow signals
+    may also act as the confirmation source.
   Idempotency:
     Repeated check-in returns current checked-in state.
   Fallback:
@@ -1396,11 +1371,11 @@ Check-In And Access Writes
   Caller agents:
     Guest Reception and Check-In Agent, Housekeeping Dispatch Agent.
   Required context:
-    Active reservation in checked-in state.
+    Active booking in checked-in state.
   Key parameters:
-    ``reservation_id``, ``checkout_source``.
+    ``booking_id``, ``checkout_source``.
   Response shape:
-    Updated reservation, room state transition signal, and housekeeping trigger.
+    Updated booking, room state transition signal, and housekeeping trigger.
   Permission:
     WRITE, guest or staff confirmation required.
   Confirmation:
@@ -1894,23 +1869,12 @@ domain layer uses these connectors.
   Fallback:
     Email or SMS.
 
-``digital_access_connector`` [MVP baseline]
-  Purpose:
-    Generate or validate access PINs or door-entry credentials.
-  Used by:
-    ``issue_access_code`` and ``validate_guest_check_in``.
-  Key behaviors:
-    Time-bound code generation, sync confirmation, activation windows, and audit
-    signaling.
-  Fallback:
-    Manual front desk access issuance.
-
 ``pms_channel_manager_connector`` [Future-ready extension]
   Purpose:
-    Synchronize reservations, room inventory, and stay events with external
+    Synchronize bookings, room inventory, and stay events with external
     property systems if the resort already has them.
   Used by:
-    Booking and reservation sync flows.
+    Booking and stay synchronization flows.
   Key behaviors:
     Two-way sync, conflict handling, source-of-truth priority, and replayable
     webhooks.
@@ -1936,7 +1900,7 @@ domain layer uses these connectors.
   Used by:
     Interaction Agent and Notification Agent.
   Key behaviors:
-    Bidirectional translation, style preservation, and confidence-tagged output.
+    Bidirectional translation, style pbooking, and confidence-tagged output.
   Fallback:
     Route to staff with language support if confidence is low.
 
@@ -1975,27 +1939,27 @@ Discovery And Booking Flow
 4. Booking Agent calls ``search_room_inventory``, ``get_room_feature_matrix``,
    and ``get_rate_quote`` as needed.
 5. Interaction Agent presents room options in guest-friendly language.
-6. If the guest selects a room, Booking Agent prepares ``create_reservation``.
+6. If the guest selects a room, Booking Agent prepares ``create_booking``.
 7. Policy and Permission Guard checks booking eligibility and pricing token.
 8. Guest confirms the booking proposal.
-9. The booking domain executes the reservation write and returns reservation
+9. The booking domain executes the booking write and returns booking
    details.
 10. Notification Agent sends confirmation details and optional payment or
-    access-code follow-up.
+    arrival-guidance follow-up.
 
 Failure handling:
 
 * If inventory changed, refresh quote and explain the change.
 * If the guest request is underspecified, ask only for the missing dates,
   occupancy, or room-fit criteria.
-* If payment cannot be completed, keep reservation in a pending state or route
+* If payment cannot be completed, keep booking in a pending state or route
   to staff.
 
 Pre-Arrival Personalization Flow
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. A confirmed reservation enters the arrival window.
-2. Guest Reception and Check-In Agent loads ``get_reservation_record``,
+1. A confirmed booking enters the arrival window.
+2. Guest Reception and Check-In Agent loads ``get_booking_record``,
    ``get_guest_profile_summary``, and ``get_guest_preference_signals``.
 3. Itinerary and Recommendation Agent evaluates arrival time, guest type, and
    available services.
@@ -2008,32 +1972,28 @@ Pre-Arrival Personalization Flow
 
 Failure handling:
 
-* If no profile exists, use reservation data only.
+* If no profile exists, use booking data only.
 * If arrival timing is unclear, keep messaging informative rather than
   assumptive.
 
-Check-In And Access Issuance Flow
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Check-In Validation Flow
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Guest asks about arrival or attempts digital check-in.
-2. Guest Reception and Check-In Agent fetches reservation and access status via
-   ``get_reservation_record`` and ``get_access_code_status``.
-3. If no valid code exists and policy allows, the agent prepares
-   ``issue_access_code``.
-4. Staff or guest confirmation occurs based on policy and check-in stage.
-5. The domain layer uses ``digital_access_connector`` to generate or sync the
-   access credential.
-6. Notification Agent delivers the credential guidance through approved
-   channels.
-7. When access validation succeeds or front desk confirms arrival, the system
-   executes ``validate_guest_check_in``.
-8. Reservation becomes ``CHECKED_IN`` and room state becomes ``OCCUPIED``.
+2. Guest Reception and Check-In Agent fetches booking and readiness context
+   via ``get_booking_record``, ``get_check_in_readiness``, and, when
+   useful, ``get_room_status_snapshot``.
+3. If the booking is eligible, the agent provides arrival guidance and any
+   required front-desk or identity steps.
+4. When front desk or staff verifies arrival, the system executes
+   ``validate_guest_check_in``.
+5. Booking becomes ``CHECKED_IN`` and room state becomes ``OCCUPIED``.
 
 Failure handling:
 
-* If access issuance fails, front desk handover is immediate.
-* If reservation dates do not match arrival, the system blocks autonomous
-  check-in and routes to staff.
+* If readiness cannot be determined, front desk handover is immediate.
+* If booking dates do not match arrival or the room is not ready, the
+  system blocks autonomous check-in and routes to staff.
 
 In-Stay Service Request Flow
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2113,7 +2073,7 @@ Dining And Activity Recommendation Flow
    example a quiet dinner after a tiring day or a family activity during a free
    afternoon.
 5. Informational suggestions are returned directly.
-6. If a suggestion requires reservation or partner booking, the next step is a
+6. If a suggestion requires booking or partner booking, the next step is a
    write proposal rather than silent auto-booking.
 
 Failure handling:
@@ -2148,10 +2108,10 @@ Checkout Flow
 ^^^^^^^^^^^^^
 
 1. Guest requests checkout or the departure window begins.
-2. Guest Reception and Check-In Agent reviews reservation status, open service
+2. Guest Reception and Check-In Agent reviews booking status, open service
    requests, and payment state.
 3. If checkout can proceed, the system proposes ``register_guest_checkout``.
-4. After confirmation, reservation becomes ``CHECKED_OUT`` and room turnover is
+4. After confirmation, booking becomes ``CHECKED_OUT`` and room turnover is
    triggered.
 5. Housekeeping Dispatch Agent queues the room for cleaning.
 6. Notification Agent sends a completion or thank-you message.
@@ -2197,7 +2157,7 @@ Failure handling:
 
 State Machines
 --------------
-State machines keep room, reservation, request, and escalation logic aligned.
+State machines keep room, booking, request, and escalation logic aligned.
 
 Room Lifecycle
 ^^^^^^^^^^^^^^
@@ -2217,7 +2177,7 @@ Rules:
 * Cleaning completion only returns the room to ``AVAILABLE`` if no maintenance
   lock exists.
 
-Reservation Lifecycle
+Booking Lifecycle
 ^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: text
@@ -2386,8 +2346,8 @@ Every agent-assisted action must emit an audit event with:
 * Confirmation result
 * Execution outcome
 
-No raw payment data, full access credentials, or unnecessary transcript content
-should be stored in general-purpose logs.
+No raw payment data or unnecessary transcript content should be stored in
+general-purpose logs.
 
 Low-Connectivity Behavior
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2396,7 +2356,7 @@ The platform must degrade gracefully when connectivity is inconsistent.
 
 * Guest channels should support retryable request submission and status polling.
 * Staff dashboards should tolerate short disconnections and resync queue state.
-* Access issuance should always have a manual fallback path.
+* Check-in validation should always have a manual front desk fallback path.
 * Notification delivery should support delayed send and alternate channels.
 * Read-heavy knowledge responses can use cached data with visible staleness
   guards.
@@ -2421,7 +2381,8 @@ Human handover is required when:
 * The model confidence is too low for a safe automated interpretation.
 * A guest is highly dissatisfied.
 * A room safety or severe maintenance issue is detected.
-* A payment or access-control action fails in a way that strands the guest.
+* A payment or check-in validation action fails in a way that strands the
+  guest.
 
 When handover occurs, the system should pass a concise summary to staff:
 intent, context, attempted actions, open proposals, and outstanding risks.
@@ -2504,7 +2465,7 @@ answer "yes" to the following:
 
 * Does every major user journey define the guest input, agent routing, tool
   usage, state changes, confirmation path, and failure behavior?
-* Are room, reservation, service request, escalation, proposal, and
+* Are room, booking, service request, escalation, proposal, and
   notification states explicit?
 * Are all write actions protected by a clear confirmation and policy model?
 * Are the current PRD and system design baseline decisions preserved?

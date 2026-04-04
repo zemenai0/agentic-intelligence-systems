@@ -1,0 +1,1235 @@
+{
+  "info": {
+    "name": "Better Experience API",
+    "description": "Comprehensive Postman collection for the Better Experience booking application backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://better-expriance-production.up.railway.app",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. System & Health",
+      "item": [
+        {
+          "name": "API Welcome Message",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Server Healthcheck",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/healthcheck",
+              "host": ["{{base_url}}"],
+              "path": ["healthcheck"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"name\": \"John Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/sign-up/email",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "sign-up", "email"]
+            }
+          }
+        },
+        {
+          "name": "Log In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/sign-in/email",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "sign-in", "email"]
+            }
+          }
+        },
+        {
+          "name": "Log Out",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/sign-out",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "sign-out"]
+            }
+          }
+        },
+        {
+          "name": "Session Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "session"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. User Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"room_id_here\",\n  \"resortId\": \"resort_id_here\",\n  \"checkInDate\": \"2024-12-20\",\n  \"checkOutDate\": \"2024-12-25\",\n  \"adults\": 2,\n  \"children\": 1,\n  \"specialRequests\": \"Late check-in please\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "List My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/bookings/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get My Booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/bookings/me/:bookingId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "me", ":bookingId"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel My Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"Flight got cancelled\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bookings/me/:bookingId/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "me", ":bookingId", "cancel"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Admin Booking Management",
+      "item": [
+        {
+          "name": "List All Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/bookings?page=1&limit=20&status=pending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "bookings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Specific Booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/bookings/:bookingId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "bookings", ":bookingId"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Booking Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/bookings/:bookingId/audit-logs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "bookings", ":bookingId", "audit-logs"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/bookings/:bookingId/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "bookings", ":bookingId", "confirm"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check-In Booking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/bookings/:bookingId/check-in",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "bookings", ":bookingId", "check-in"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check-Out Booking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/bookings/:bookingId/check-out",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "bookings", ":bookingId", "check-out"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark No-Show",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/bookings/:bookingId/no-show",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "bookings", ":bookingId", "no-show"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Force Cancel Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"Customer requested cancellation via phone\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/bookings/:bookingId/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "bookings", ":bookingId", "cancel"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Admin Resort Management",
+      "item": [
+        {
+          "name": "Create Resort",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sunrise Beach Resort\",\n  \"location\": \"Maldives\",\n  \"currency\": \"USD\",\n  \"checkInTime\": \"15:00\",\n  \"checkOutTime\": \"11:00\",\n  \"maxNights\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/resorts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "resorts"]
+            }
+          }
+        },
+        {
+          "name": "List Resorts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/resorts?page=1&limit=20&search=Beach",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "resorts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "Beach"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Resort",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/resorts/:resortId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "resorts", ":resortId"],
+              "variable": [
+                {
+                  "key": "resortId",
+                  "value": "resort_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Resort",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sunrise Beach & Spa Resort\",\n  \"maxNights\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/resorts/:resortId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "resorts", ":resortId"],
+              "variable": [
+                {
+                  "key": "resortId",
+                  "value": "resort_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Resort",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/resorts/:resortId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "resorts", ":resortId"],
+              "variable": [
+                {
+                  "key": "resortId",
+                  "value": "resort_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Admin Room Management",
+      "item": [
+        {
+          "name": "Create Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resortId\": \"resort_id_here\",\n  \"roomNumber\": \"101\",\n  \"type\": \"deluxe\",\n  \"floor\": 1,\n  \"sizeSqm\": \"45.5\",\n  \"maxGuests\": 3,\n  \"bedConfiguration\": \"1 King\",\n  \"basePriceCents\": 25000,\n  \"accessible\": false,\n  \"notes\": \"Ocean view\",\n  \"amenities\": [\"amenity_id_here\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "rooms"]
+            }
+          }
+        },
+        {
+          "name": "List Rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms?page=1&limit=20&resortId=resort_id_here&status=available&floor=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "rooms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "resortId",
+                  "value": "resort_id_here"
+                },
+                {
+                  "key": "status",
+                  "value": "available"
+                },
+                {
+                  "key": "floor",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Room",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms/:roomId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "rooms", ":roomId"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Room",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+               }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"basePriceCents\": 28000,\n  \"notes\": \"Updated rate for peak season\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms/:roomId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "rooms", ":roomId"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Room",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms/:roomId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "rooms", ":roomId"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Room Operations",
+      "item": [
+        {
+          "name": "Create Room (Canonical Route)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resortId\": \"resort_id_here\",\n  \"roomNumber\": \"102\",\n  \"type\": \"superior\",\n  \"floor\": 1,\n  \"sizeSqm\": \"38.0\",\n  \"maxGuests\": 2,\n  \"bedConfiguration\": \"1 Queen\",\n  \"basePriceCents\": 18000,\n  \"accessible\": false,\n  \"notes\": \"Garden-facing room\",\n  \"amenities\": [\"amenity_id_here\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms"]
+            }
+          }
+        },
+        {
+          "name": "List Rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/rooms?page=1&limit=20&resortId=resort_id_here&status=available&type=deluxe&floor=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "resortId",
+                  "value": "resort_id_here"
+                },
+                {
+                  "key": "status",
+                  "value": "available"
+                },
+                {
+                  "key": "type",
+                  "value": "deluxe"
+                },
+                {
+                  "key": "floor",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Replace Room Configuration",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomNumber\": \"102A\",\n  \"type\": \"suite\",\n  \"floor\": 1,\n  \"sizeSqm\": \"52.5\",\n  \"maxGuests\": 3,\n  \"bedConfiguration\": \"1 King + Sofa Bed\",\n  \"basePriceCents\": 32000,\n  \"accessible\": true,\n  \"notes\": \"Updated premium configuration\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/rooms/:roomId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", ":roomId"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Room Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/:roomId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", ":roomId"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Room Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_maintenance\",\n  \"reason\": \"AC unit not functioning in room 201.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/rooms/:roomId/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", ":roomId", "status"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Room Status Log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/:roomId/status-log",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", ":roomId", "status-log"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Room Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/:roomId/availability?checkInDate=2026-04-10&checkOutDate=2026-04-12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", ":roomId", "availability"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ],
+              "query": [
+                {
+                  "key": "checkInDate",
+                  "value": "2026-04-10"
+                },
+                {
+                  "key": "checkOutDate",
+                  "value": "2026-04-12"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign Amenity To Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amenityId\": \"amenity_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/rooms/:roomId/amenities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", ":roomId", "amenities"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Amenity From Room",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/:roomId/amenities/:amenityId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", ":roomId", "amenities", ":amenityId"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                },
+                {
+                  "key": "amenityId",
+                  "value": "amenity_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Housekeeping Queue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/housekeeping/queue",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", "housekeeping", "queue"]
+            }
+          }
+        },
+        {
+          "name": "Update Housekeeping Progress",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"complete\",\n  \"reason\": \"Cleaning completed and room inspected\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/rooms/:roomId/housekeeping",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", ":roomId", "housekeeping"],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "room_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Amenity Catalog",
+      "item": [
+        {
+          "name": "List Amenities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/amenities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "amenities"]
+            }
+          }
+        },
+        {
+          "name": "Create Amenity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lake View\",\n  \"category\": \"view\",\n  \"iconSlug\": \"lake-view\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/amenities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "amenities"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Service Catalog",
+      "item": [
+        {
+          "name": "List Service Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/services/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "services", "categories"]
+            }
+          }
+        },
+        {
+          "name": "List Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/services?available=true&categoryId=category_id_here",
+              "host": ["{{base_url}}"],
+              "path": ["api", "services"],
+              "query": [
+                {
+                  "key": "available",
+                  "value": "true"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "category_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/services/:serviceId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "services", ":serviceId"],
+              "variable": [
+                {
+                  "key": "serviceId",
+                  "value": "service_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Guest Service Requests",
+      "item": [
+        {
+          "name": "List My Booking Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/bookings/me/:bookingId/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "me", ":bookingId", "services"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Service To My Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"service_id_here\",\n  \"quantity\": 2,\n  \"scheduledAt\": \"2026-04-15T10:00:00.000Z\",\n  \"notes\": \"Please reserve two spa sessions\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bookings/me/:bookingId/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "me", ":bookingId", "services"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List My Service Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/bookings/me/:bookingId/service-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "me", ":bookingId", "service-requests"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Service Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"maintenance\",\n  \"description\": \"Air conditioning is not cooling properly\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bookings/me/:bookingId/service-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "me", ":bookingId", "service-requests"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Admin Service Management",
+      "item": [
+        {
+          "name": "Create Service Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wellness\",\n  \"slug\": \"wellness\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"category_id_here\",\n  \"name\": \"Deep Tissue Massage\",\n  \"description\": \"60-minute therapeutic massage\",\n  \"priceCents\": 15000,\n  \"durationMins\": 60,\n  \"available\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services"]
+            }
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"priceCents\": 16500,\n  \"available\": true,\n  \"description\": \"Updated 60-minute massage package\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/:serviceId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", ":serviceId"],
+              "variable": [
+                {
+                  "key": "serviceId",
+                  "value": "service_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Service Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/bookings?bookingId=booking_id_here&status=pending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", "bookings"],
+              "query": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Service Booking Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/bookings/:serviceBookingId/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", "bookings", ":serviceBookingId", "status"],
+              "variable": [
+                {
+                  "key": "serviceBookingId",
+                  "value": "service_booking_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Service Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/requests?bookingId=booking_id_here&status=open",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", "requests"],
+              "query": [
+                {
+                  "key": "bookingId",
+                  "value": "booking_id_here"
+                },
+                {
+                  "key": "status",
+                  "value": "open"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Service Request Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"assignedTo\": \"staff_user_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/requests/:serviceRequestId/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", "requests", ":serviceRequestId", "status"],
+              "variable": [
+                {
+                  "key": "serviceRequestId",
+                  "value": "service_request_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
