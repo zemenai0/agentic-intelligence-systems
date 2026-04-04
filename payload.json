@@ -1,0 +1,26 @@
+ROOM_ID="room_id_from_step_1"
+
+curl -s "$BASE/internal/agent/respond" \
+  -H 'Content-Type: application/json' \
+  -d "{
+    \"request_id\": \"req_2\",
+    \"trace_id\": \"trace_2\",
+    \"actor\": { \"actor_type\": \"guest\", \"user_id\": \"user_1\" },
+    \"conversation\": {
+      \"conversation_id\": \"$CONV_ID\",
+      \"channel\": \"mobile_chat\",
+      \"language\": \"en\"
+    },
+    \"booking_context\": {
+      \"resort_id\": \"$RESORT_ID\",
+      \"room_id\": \"$ROOM_ID\"
+    },
+    \"message\": {
+      \"message_id\": \"msg_2\",
+      \"content\": \"Please book room $ROOM_ID from 2026-05-01 to 2027-05-03.\"
+    },
+    \"policy_context\": {
+      \"proposal_required_for_writes\": true,
+      \"allowed_tool_names\": [\"create_booking\"]
+    }
+  }"
