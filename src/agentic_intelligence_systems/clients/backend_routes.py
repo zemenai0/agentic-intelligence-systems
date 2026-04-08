@@ -35,13 +35,13 @@ def resort_catalog(search: str | None = None) -> BackendRouteSpec:
     params: dict[str, Any] = {"page": 1, "limit": 20}
     if search:
         params["search"] = search
-    return BackendRouteSpec("GET", "/api/admin/resorts", params=params)
+    return BackendRouteSpec("GET", "/api/resorts", params=params)
 
 
 def room_list(filters: dict[str, Any]) -> BackendRouteSpec:
     params = {"page": 1, "limit": 20}
     params.update({key: value for key, value in filters.items() if value is not None})
-    return BackendRouteSpec("GET", "/api/admin/rooms", params=params)
+    return BackendRouteSpec("GET", "/api/rooms", params=params)
 
 
 def room_availability(
